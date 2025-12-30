@@ -1,0 +1,4 @@
+teh     -> the
+adn     -> and
+isntall -> install
+myemail -> sultonovzerifboy@gmail.com
