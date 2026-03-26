@@ -20,19 +20,70 @@
 
 #define LEADER KC_APP
 
-
-enum layers{
+enum layers {
     _BASE,
     _GAME,
+    _CS2,
     _SYM,
 };
+
+enum custom_keycodes {
+    CS2_A = SAFE_RANGE,
+    CS2_D,
+};
+
+static uint8_t cs2_random_delay(uint8_t min_ms, uint8_t max_ms) {
+    uint8_t span = max_ms - min_ms + 1;
+    return min_ms + (timer_read() % span);
+}
+
+static bool cs2_a_held = false;
+static bool cs2_d_held = false;
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case CS2_A:
+            if (record->event.pressed) {
+                cs2_a_held = true;
+                unregister_code(KC_D);
+                register_code(KC_A);
+            } else {
+                cs2_a_held = false;
+                unregister_code(KC_A);
+                if (cs2_d_held) {
+                    register_code(KC_D);
+                } else {
+                    wait_ms(cs2_random_delay(11, 27));
+                    tap_code(KC_D);
+                }
+            }
+            return false;
+        case CS2_D:
+            if (record->event.pressed) {
+                cs2_d_held = true;
+                unregister_code(KC_A);
+                register_code(KC_D);
+            } else {
+                cs2_d_held = false;
+                unregister_code(KC_D);
+                if (cs2_a_held) {
+                    register_code(KC_A);
+                } else {
+                    wait_ms(cs2_random_delay(11, 27));
+                    tap_code(KC_A);
+                }
+            }
+            return false;
+    }
+
+    return true;
+}
 
 void leader_end_user(void) {
     // --- ADD / COMMIT ---
     if (leader_sequence_two_keys(KC_G, KC_A)) {
         SEND_STRING("git add .");
-    }
-    else if (leader_sequence_two_keys(KC_G, KC_C)) {
+    } else if (leader_sequence_two_keys(KC_G, KC_C)) {
         SEND_STRING("git commit -m \"\"");
         SEND_STRING(SS_TAP(X_LEFT));
     }
@@ -40,77 +91,58 @@ void leader_end_user(void) {
     // --- PUSH / PULL / FETCH ---
     else if (leader_sequence_two_keys(KC_G, KC_P)) {
         SEND_STRING("git push");
-    }
-    else if (leader_sequence_two_keys(KC_G, KC_U)) {
+    } else if (leader_sequence_two_keys(KC_G, KC_U)) {
         SEND_STRING("git pull");
-    }
-    else if (leader_sequence_two_keys(KC_G, KC_F)) {
+    } else if (leader_sequence_two_keys(KC_G, KC_F)) {
         SEND_STRING("git fetch");
     }
 
-        // --- BUN ---
+    // --- BUN ---
     else if (leader_sequence_two_keys(KC_B, KC_I)) {
         SEND_STRING("bun install");
-    }
-    else if (leader_sequence_two_keys(KC_B, KC_A)) {
+    } else if (leader_sequence_two_keys(KC_B, KC_A)) {
         SEND_STRING("bun add ");
-    }
-    else if (leader_sequence_two_keys(KC_B, KC_R)) {
+    } else if (leader_sequence_two_keys(KC_B, KC_R)) {
         SEND_STRING("bun run ");
-    }
-    else if (leader_sequence_two_keys(KC_B, KC_D)) {
+    } else if (leader_sequence_two_keys(KC_B, KC_D)) {
         SEND_STRING("bun dev");
-    }
-    else if (leader_sequence_two_keys(KC_B, KC_U)) {
+    } else if (leader_sequence_two_keys(KC_B, KC_U)) {
         SEND_STRING("bun upgrade\n");
-    }
-    else if (leader_sequence_two_keys(KC_B, KC_X)) {
+    } else if (leader_sequence_two_keys(KC_B, KC_X)) {
         SEND_STRING("bunx ");
-    }
-    else if (leader_sequence_two_keys(KC_B, KC_C)) {
+    } else if (leader_sequence_two_keys(KC_B, KC_C)) {
         SEND_STRING("bun create ");
     }
 
-        // --- DOCKER ---
+    // --- DOCKER ---
     else if (leader_sequence_two_keys(KC_D, KC_P)) {
         SEND_STRING("docker ps");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_A)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_A)) {
         SEND_STRING("docker ps -a");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_I)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_I)) {
         SEND_STRING("docker images");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_B)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_B)) {
         SEND_STRING("docker build .");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_R)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_R)) {
         SEND_STRING("docker run ");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_S)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_S)) {
         SEND_STRING("docker stop ");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_K)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_K)) {
         SEND_STRING("docker kill ");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_L)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_L)) {
         SEND_STRING("docker logs ");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_E)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_E)) {
         SEND_STRING("docker exec -it ");
     }
 
     // --- DOCKER COMPOSE ---
     else if (leader_sequence_two_keys(KC_D, KC_C)) {
         SEND_STRING("docker compose up");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_D)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_D)) {
         SEND_STRING("docker compose down");
-    }
-    else if (leader_sequence_two_keys(KC_D, KC_U)) {
+    } else if (leader_sequence_two_keys(KC_D, KC_U)) {
         SEND_STRING("docker compose up -d");
     }
-
 }
 
 // clang-format off
@@ -131,13 +163,21 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_LSFT,            KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_SLSH,              KC_RSFT,            KC_UP,
         KC_LCTL,  KC_LWIN,  KC_LALT,                                KC_SPC,                                 KC_RALT,  MO(_SYM) ,KC_APP,    KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
 
+    [_CS2] = LAYOUT_tkl_ansi(
+        KC_ESC,             KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,    KC_F6,    KC_F7,    KC_F8,    KC_F9,    KC_F10,   KC_F11,     KC_F12,   KC_PSCR,  QK_LOCK,  KC_PAUS,
+        KC_GRV,   KC_1,     KC_2,     KC_3,     KC_4,     KC_5,     KC_6,     KC_7,     KC_8,     KC_9,     KC_0,     KC_MINS,  KC_EQL,     KC_BSPC,  KC_INS,   KC_HOME,  KC_PGUP,
+        KC_TAB,   KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,     KC_LBRC,  KC_RBRC,    KC_BSLS,  KC_DEL,   KC_END,   KC_PGDN,
+        KC_CAPS,  CS2_A,    KC_S,     CS2_D,    KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN,  KC_QUOT,              KC_ENT,
+        KC_LSFT,            KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_SLSH,              KC_RSFT,            KC_UP,
+        KC_LCTL,  KC_LWIN,  KC_LALT,                                KC_SPC,                                 KC_RALT,  MO(_SYM), KC_APP,    KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
+
     [_SYM] = LAYOUT_tkl_ansi(
         _______,            KC_BRID,  KC_BRIU,  _______,  _______,  LM_BRID,  LM_BRIU,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,  KC_VOLD,    KC_VOLU,  _______,  _______,  BL_STEP,
         _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,    _______,  _______,  _______,  _______,
         BL_TOGG,  BL_STEP,  LM_BRIU,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,    _______,  MS_BTN1,  MS_BTN3,  MS_BTN2,
         KC_OSSW,  _______,  LM_BRID,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,              MS_WHLR,
         _______,            _______,  _______,  _______,  _______,  _______,  NK_TOGG,  _______,  _______,  _______,  _______,              MS_WHLL,            MS_UP,
-        DF(_BASE),  DF(_GAME),  _______,                                _______,                                _______,  _______,  MS_WHLD,    MS_WHLU,  MS_LEFT  ,  MS_DOWN,  MS_RGHT),
+        DF(_BASE),  DF(_GAME),  DF(_CS2),                               _______,                                _______,  _______,  MS_WHLD,    MS_WHLU,  MS_LEFT  ,  MS_DOWN,  MS_RGHT),
+
 
 };
-
