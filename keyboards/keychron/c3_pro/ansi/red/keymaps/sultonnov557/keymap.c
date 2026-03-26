@@ -39,6 +39,12 @@ static uint8_t cs2_random_delay(uint8_t min_ms, uint8_t max_ms) {
     return min_ms + (timer_read() % span);
 }
 
+static void cs2_random_tap_hold(uint16_t keycode, uint8_t min_ms, uint8_t max_ms) {
+    register_code16(keycode);
+    wait_ms(cs2_random_delay(min_ms, max_ms));
+    unregister_code16(keycode);
+}
+
 static bool cs2_a_held = false;
 static bool cs2_d_held = false;
 
@@ -55,8 +61,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (cs2_d_held) {
                     register_code(KC_D);
                 } else {
-                    wait_ms(cs2_random_delay(11, 27));
-                    tap_code(KC_D);
+                    cs2_random_tap_hold(KC_D, 40, 60);
                 }
             }
             return false;
@@ -71,8 +76,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (cs2_a_held) {
                     register_code(KC_A);
                 } else {
-                    wait_ms(cs2_random_delay(11, 27));
-                    tap_code(KC_A);
+                    cs2_random_tap_hold(KC_A, 40, 60);
                 }
             }
             return false;
