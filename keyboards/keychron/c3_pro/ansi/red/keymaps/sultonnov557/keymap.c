@@ -31,6 +31,7 @@ enum custom_keycodes {
     CS2_A = SAFE_RANGE,
     CS2_D,
     CS2_JT,
+    CS2_BDROP,
 };
 
 static uint8_t cs2_random_delay(uint8_t min_ms, uint8_t max_ms) {
@@ -80,6 +81,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 tap_code(KC_SPC);
                 wait_ms(15);
                 tap_code(MS_BTN1);
+            }
+            return false;
+        case CS2_BDROP:
+            if (record->event.pressed) {
+                tap_code(KC_5);
+                wait_ms(15);
+                tap_code(KC_G);
             }
             return false;
     }
@@ -177,11 +185,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,   KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,     KC_LBRC,  KC_RBRC,    KC_BSLS,  KC_DEL,   KC_END,   KC_PGDN,
         CS2_JT,   CS2_A,    KC_S,     CS2_D,    KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN,  KC_QUOT,              KC_ENT,
         KC_LSFT,            KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_SLSH,              KC_RSFT,            KC_UP,
-        KC_LCTL,  KC_LWIN,  KC_LALT,                                KC_SPC,                                 KC_RALT,  MO(_SYM), KC_APP,    KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
+        KC_LCTL,  KC_LWIN,  KC_LALT,                                KC_SPC,                                 KC_RALT,  MO(_SYM), CS2_BDROP,KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
 
     [_SYM] = LAYOUT_tkl_ansi(
         _______,            KC_BRID,  KC_BRIU,  _______,  _______,  LM_BRID,  LM_BRIU,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,  KC_VOLD,    KC_VOLU,  _______,  _______,  BL_STEP,
-        _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,    _______,  _______,  _______,  _______,
+        _______,  KC_F13,   KC_F14,   KC_F15,   KC_F16,   KC_F17,   KC_F18,   _______,  _______,  _______,  _______,  _______,  _______,    _______,  _______,  _______,  _______,
         BL_TOGG,  BL_STEP,  LM_BRIU,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,    _______,  MS_BTN1,  MS_BTN3,  MS_BTN2,
         KC_OSSW,  _______,  LM_BRID,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,              MS_WHLR,
         _______,            _______,  _______,  _______,  _______,  _______,  NK_TOGG,  _______,  _______,  _______,  _______,              MS_WHLL,            MS_UP,
