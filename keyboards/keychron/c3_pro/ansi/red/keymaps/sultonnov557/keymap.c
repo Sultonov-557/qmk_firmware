@@ -61,7 +61,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (cs2_d_held) {
                     register_code(KC_D);
                 } else {
-                    cs2_random_tap_hold(KC_D, 40, 60);
+                    cs2_random_tap_hold(KC_D, 80, 120);
                 }
             }
             return false;
@@ -76,7 +76,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (cs2_a_held) {
                     register_code(KC_A);
                 } else {
-                    cs2_random_tap_hold(KC_A, 40, 60);
+                    cs2_random_tap_hold(KC_A, 80, 120);
                 }
             }
             return false;
