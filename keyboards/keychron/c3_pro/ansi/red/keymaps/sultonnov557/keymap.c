@@ -31,28 +31,36 @@ enum custom_keycodes {
     CS2_A = SAFE_RANGE,
     CS2_D,
     CS2_JT,
-    CS2_BDROP,
+    CS2_JS,
 };
 
-static uint8_t cs2_random_delay(uint8_t min_ms, uint8_t max_ms) {
-    uint8_t span = max_ms - min_ms + 1;
-    return min_ms + (timer_read() % span);
-}
+// Counter-strafe configuration
+#define CS2_HOLD_TO_COUNTER_MS 150 // How long key must be held before counter-strafing
+#define CS2_TAP_MIN_MS 80          // Min duration of the counter-strafe tap
+#define CS2_TAP_MAX_MS 100         // Max duration of the counter-strafe tap
 
-static void cs2_random_tap_hold(uint16_t keycode, uint8_t min_ms, uint8_t max_ms) {
+static bool     cs2_a_held = false;
+static bool     cs2_d_held = false;
+static uint16_t cs2_a_press_time;
+static uint16_t cs2_d_press_time;
+
+static void cs2_counterstrafe(uint16_t keycode) {
+    // Don't counter-strafe while holding shift (walk key in CS2)
+    if (get_mods() & MOD_MASK_SHIFT) {
+        return;
+    }
+    uint8_t hold_ms = CS2_TAP_MIN_MS + (timer_read() % (CS2_TAP_MAX_MS - CS2_TAP_MIN_MS + 1));
     register_code16(keycode);
-    wait_ms(cs2_random_delay(min_ms, max_ms));
+    wait_ms(hold_ms);
     unregister_code16(keycode);
 }
-
-static bool cs2_a_held = false;
-static bool cs2_d_held = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case CS2_A:
             if (record->event.pressed) {
-                cs2_a_held = true;
+                cs2_a_held       = true;
+                cs2_a_press_time = record->event.time;
                 unregister_code(KC_D);
                 register_code(KC_A);
             } else {
@@ -60,14 +68,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(KC_A);
                 if (cs2_d_held) {
                     register_code(KC_D);
-                } else {
-                    cs2_random_tap_hold(KC_D, 80, 120);
+                } else if (timer_elapsed(cs2_a_press_time) >= CS2_HOLD_TO_COUNTER_MS) {
+                    cs2_counterstrafe(KC_D);
                 }
             }
             return false;
         case CS2_D:
             if (record->event.pressed) {
-                cs2_d_held = true;
+                cs2_d_held       = true;
+                cs2_d_press_time = record->event.time;
                 unregister_code(KC_A);
                 register_code(KC_D);
             } else {
@@ -75,8 +84,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(KC_D);
                 if (cs2_a_held) {
                     register_code(KC_A);
-                } else {
-                    cs2_random_tap_hold(KC_A, 80, 120);
+                } else if (timer_elapsed(cs2_d_press_time) >= CS2_HOLD_TO_COUNTER_MS) {
+                    cs2_counterstrafe(KC_A);
                 }
             }
             return false;
@@ -87,11 +96,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 tap_code(MS_BTN1);
             }
             return false;
-        case CS2_BDROP:
+        case CS2_JS:
             if (record->event.pressed) {
-                tap_code(KC_5);
-                wait_ms(15);
-                tap_code(KC_G);
+                tap_code(KC_SPC);
+                wait_ms(350);
+                tap_code(MS_BTN1);
             }
             return false;
     }
@@ -123,7 +132,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,   KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,     KC_LBRC,  KC_RBRC,    KC_BSLS,  KC_DEL,   KC_END,   KC_PGDN,
         CS2_JT,   CS2_A,    KC_S,     CS2_D,    KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN,  KC_QUOT,              KC_ENT,
         KC_LSFT,            KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_SLSH,              KC_RSFT,            KC_UP,
-        KC_LCTL,  KC_LWIN,  KC_LALT,                                KC_SPC,                                 KC_RALT,  MO(_SYM), CS2_BDROP,KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
+        KC_LCTL,  CS2_JS,  KC_LALT,                                KC_SPC,                                 KC_RALT,  MO(_SYM), KC_APP ,KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
 
     [_SYM] = LAYOUT_tkl_ansi(
         _______,            KC_BRID,  KC_BRIU,  _______,  _______,  LM_BRID,  LM_BRIU,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,  KC_VOLD,    KC_VOLU,  _______,  _______,  BL_STEP,
